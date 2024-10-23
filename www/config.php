@@ -276,13 +276,32 @@
 	function isThumbnail($file) {
 		return (substr($file, -7) == THUMBNAIL_EXT);
 	}
+
+	function isMedia($file) {
+		// can be jpg, png, bpm, rgb, yuv420, mp4, h264, dng, raw and should be case insensitive
+		$ext = fileext($file);
+		return (strcasecmp($ext, "jpg") == 0 || strcasecmp($ext, "png") == 0 || strcasecmp($ext, "bmp") == 0 || strcasecmp($ext, "rgb") == 0 || strcasecmp($ext, "yuv420") == 0 || strcasecmp($ext, "mp4") == 0 || strcasecmp($ext, "h264") == 0 || strcasecmp($ext, "dng") == 0 || strcasecmp($ext, "raw") == 0);
+	}
    
+	// function getFileType($file) {
+	// 	$i = strrpos($file, '.', -8);
+	// 	if ($i !== false)
+	// 		return substr($file, $i + 1, 1);
+	// 	else
+	// 		return ""; 
+	// }
 	function getFileType($file) {
-		$i = strrpos($file, '.', -8);
-		if ($i !== false)
-			return substr($file, $i + 1, 1);
-		else
-			return ""; 
+		// if it ends with jpg, png, bmp, rgb, yuv420, dng, raw it is a picture and return 'i'
+		// if it ends with mp4, h264 it is a video and return 'v'
+		$ext = fileext($file);
+		if (strcasecmp($ext, "jpg") == 0 || strcasecmp($ext, "png") == 0 || strcasecmp($ext, "bmp") == 0 || strcasecmp($ext, "rgb") == 0 || strcasecmp($ext, "yuv420") == 0 || strcasecmp($ext, "dng") == 0 || strcasecmp($ext, "raw") == 0) {
+			return 'i';
+		} else if (strcasecmp($ext, "mp4") == 0 || strcasecmp($ext, "h264") == 0) {
+			return 'v';
+		} else {
+			return "";
+		}
+
 	}
    
 	function getFileIndex($file) {

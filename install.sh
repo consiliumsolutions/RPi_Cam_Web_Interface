@@ -75,6 +75,7 @@ versionfile="./www/config.php"
 version=$(cat $versionfile | grep "'APP_VERSION'" | cut -d "'" -f4)
 backtitle="Copyright (c) 2015, Bob Tidey. RPi Cam $version"
 jpglink="no"
+gpacinstall="no"
 
 # Config options located in ./config.txt. In first run script makes that file for you.
 if [ ! -e ./config.txt ]; then
@@ -87,6 +88,7 @@ if [ ! -e ./config.txt ]; then
       sudo echo "autostart=\"yes\"" >> ./config.txt
       sudo echo "jpglink=\"no\"" >> ./config.txt
       sudo echo "phpversion=\"$phpversion\"" >> ./config.txt
+      sudo echo "gpacinstall=\"no\"" >> ./config.txt
       sudo echo "" >> ./config.txt
       sudo chmod 664 ./config.txt
 fi
@@ -116,6 +118,7 @@ if [ $# -eq 0 ] || [ "$1" != "q" ]; then
    "Password:"             6 1   "$webpasswd"   6 32 15 0  \
    "jpglink:(yes/no)"      7 1   "$jpglink"     7 32 15 0  \
    "php:(stretch 7.0,buster 7.3)"           8 1   "$phpversion"  8 32 15 0  \
+   "install gpac:(yes/no)" 9 1   "$gpacinstall" 9 32 15 0  \
    2>&1 1>&3 | {
       read -r rpicamdir
       read -r autostart
@@ -125,6 +128,7 @@ if [ $# -eq 0 ] || [ "$1" != "q" ]; then
       read -r webpasswd
 	  read -r jpglink
 	  read -r phpversion
+     read -r gpacinstall
    if [ -n "$webport" ]; then
       sudo echo "#This is edited config file for main installer. Put any extra options in here." > ./config.txt
       sudo echo "rpicamdir=\"$rpicamdir\"" >> ./config.txt
@@ -135,6 +139,7 @@ if [ $# -eq 0 ] || [ "$1" != "q" ]; then
       sudo echo "autostart=\"$autostart\"" >> ./config.txt
       sudo echo "jpglink=\"$jpglink\"" >> ./config.txt
       sudo echo "phpversion=\"$phpversion\"" >> ./config.txt
+      sudo echo "gpacinstall=\"$gpacinstall\"" >> ./config.txt
       sudo echo "" >> ./config.txt
    else
       echo "exit" > ./exitfile.txt
@@ -370,9 +375,10 @@ else
    phpv=php$phpversion
 fi
 
-if [! command -v MP4Box &> /dev/null]; then
+# if gpacinstall is yes, install gpac
+if [ "$gpacinstall" == "yes" ]; then
    temp_dir=$(mktemp -d)
-   pushd $temp_dir
+   pushd "$temp_dir"
 
    if [ -e /etc/debian_version ]; then
       sudo apt install libjpeg62-turbo-dev
@@ -381,13 +387,12 @@ if [! command -v MP4Box &> /dev/null]; then
    fi
 
    sudo apt install -y zlib1g-dev libfreetype6-dev libpng-dev libmad0-dev libfaad-dev libogg-dev libvorbis-dev libtheora-dev liba52-0.7.4-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libnghttp2-dev libopenjp2-7-dev libcaca-dev libxv-dev x11proto-video-dev libgl1-mesa-dev libglu1-mesa-dev x11proto-gl-dev libxvidcore-dev libssl-dev libjack-jackd2-dev libasound2-dev libpulse-dev libsdl2-dev dvb-apps mesa-utils libcurl4-openssl-dev build-essential pkg-config g++ git cmake yasm
-
    git clone https://github.com/gpac/gpac.git
    cd gpac
    ./configure
-   make
+   JOBS=$(nproc 2>/dev/null || echo 1)
+   make -j$JOBS
    sudo make install
-
    popd
    rm -rf $temp_dir
 fi

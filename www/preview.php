@@ -331,8 +331,11 @@
       $files = scandir(MEDIA_PATH);
       $thumbnails = array();
       $nowTime = time();
+      echo "<script>console.log('Reached this line');</script>";
       foreach($files as $file) {
-         if($file != '.' && $file != '..' && isThumbnail($file)) {
+         // print the file name to the console log
+         echo "<script>console.log('File: $file');</script>";
+         if($file != '.' && $file != '..' && isMedia($file)) {
 			 $fTime = filemtime(MEDIA_PATH . "/$file");
             if ($timeFilter == 1) {
                $include = true;

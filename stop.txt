@@ -1,0 +1,17 @@
++++ readlink -f ./stop.sh
+++ dirname /home/andrei-rpi/repos/RPi_Cam_Web_Interface/stop.sh
++ cd /home/andrei-rpi/repos/RPi_Cam_Web_Interface
++ source ./config.txt
+++ rpicamdir=html
+++ webserver=apache
+++ webport=80
+++ user=
+++ webpasswd=
+++ autostart=yes
+++ jpglink=no
+++ phpversion=8.2
+++ gpacinstall=no
++ fn_stop
++ sudo killall rpicam-mjpeg
++ sudo killall php
++ sudo killall motion
