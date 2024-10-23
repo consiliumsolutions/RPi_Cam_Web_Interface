@@ -159,7 +159,7 @@ fi
 
 fn_stop ()
 { # This is function stop
-        sudo killall raspimjpeg 2>/dev/null
+        sudo killall rpicam-mjpeg 2>/dev/null
         sudo killall php 2>/dev/null
         sudo killall motion 2>/dev/null
 }
@@ -322,20 +322,17 @@ sudo sed '/#START/,/#END/d' /etc/rc.local > "$tmpfile" && sudo mv "$tmpfile" /et
 # Remove to growing plank lines.
 sudo awk '!NF {if (++n <= 1) print; next}; {n=0;print}' /etc/rc.local > "$tmpfile" && sudo mv "$tmpfile" /etc/rc.local
 if [ "$autostart" == "yes" ]; then
-   if ! grep -Fq '#START RASPIMJPEG SECTION' /etc/rc.local; then
+   if ! grep -Fq '#START RPICAM-MJPEG SECTION' /etc/rc.local; then
       sudo sed -i '/exit 0/d' /etc/rc.local
       sudo bash -c "cat >> /etc/rc.local" << EOF
-#START RASPIMJPEG SECTION
-mkdir -p /dev/shm/mjpeg
-chown www-data:www-data /dev/shm/mjpeg
-chmod 777 /dev/shm/mjpeg
-sleep 4;su -c 'raspimjpeg > /dev/null 2>&1 &' www-data
+#START RPICAM-MJPEG SECTION
+sleep 6;su -c 'rpicam-mjpeg > /dev/null 2>&1 &' www-data
 if [ -e /etc/debian_version ]; then
-  sleep 4;su -c 'php /var/www$rpicamdir/schedule.php > /dev/null 2>&1 &' www-data
+  sleep 6;su -c 'php /var/www$rpicamdir/schedule.php > /dev/null 2>&1 &' www-data
 else
-  sleep 4;su -s '/bin/bash' -c 'php /var/www$rpicamdir/schedule.php > /dev/null 2>&1 &' www-data
+  sleep ;su -s '/bin/bash' -c 'php /var/www$rpicamdir/schedule.php > /dev/null 2>&1 &' www-data
 fi
-#END RASPIMJPEG SECTION
+#END RPICAM-MJPEG SECTION
 
 exit 0
 EOF
@@ -373,16 +370,38 @@ else
    phpv=php$phpversion
 fi
 
+if [! command -v MP4Box &> /dev/null]; then
+   temp_dir=$(mktemp -d)
+   pushd $temp_dir
+
+   if [ -e /etc/debian_version ]; then
+      sudo apt install libjpeg62-turbo-dev
+   else
+      sudo apt install libjpeg62-dev
+   fi
+
+   sudo apt install -y zlib1g-dev libfreetype6-dev libpng-dev libmad0-dev libfaad-dev libogg-dev libvorbis-dev libtheora-dev liba52-0.7.4-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavdevice-dev libnghttp2-dev libopenjp2-7-dev libcaca-dev libxv-dev x11proto-video-dev libgl1-mesa-dev libglu1-mesa-dev x11proto-gl-dev libxvidcore-dev libssl-dev libjack-jackd2-dev libasound2-dev libpulse-dev libsdl2-dev dvb-apps mesa-utils libcurl4-openssl-dev build-essential pkg-config g++ git cmake yasm
+
+   git clone https://github.com/gpac/gpac.git
+   cd gpac
+   ./configure
+   make
+   sudo make install
+
+   popd
+   rm -rf $temp_dir
+fi
+
 if [ "$webserver" == "apache" ]; then
-   sudo apt-get install -y apache2 $phpv $phpv-cli libapache2-mod-$phpv gpac motion zip gstreamer1.0-tools
+   sudo apt-get install -y apache2 $phpv $phpv-cli libapache2-mod-$phpv motion zip gstreamer1.0-tools
    if [ $? -ne 0 ]; then exit; fi
    fn_apache
 elif [ "$webserver" == "nginx" ]; then
-   sudo apt-get install -y nginx $phpv-fpm $phpv-cli $phpv-common php-apcu apache2-utils gpac motion zip gstreamer1.0-tools
+   sudo apt-get install -y nginx $phpv-fpm $phpv-cli $phpv-common php-apcu apache2-utils motion zip gstreamer1.0-tools
    if [ $? -ne 0 ]; then exit; fi
    fn_nginx
 elif [ "$webserver" == "lighttpd" ]; then
-   sudo apt-get install -y  lighttpd $phpv-cli $phpv-common $phpv-cgi $phpv gpac motion zip gstreamer1.0-tools
+   sudo apt-get install -y  lighttpd $phpv-cli $phpv-common $phpv-cgi $phpv motion zip gstreamer1.0-tools
    if [ $? -ne 0 ]; then exit; fi
    fn_lighttpd
 fi
@@ -390,6 +409,9 @@ fi
 #Make sure user www-data has bash shell
 sudo sed -i "s/^www-data:x.*/www-data:x:33:33:www-data:\/var\/www:\/bin\/bash/g" /etc/passwd
 
+# install used to create directories and FIFOs
+# but rpicam-mjpeg does this now when run
+# since user can supply custom paths, makes sense to delegate this to rpicam-mjpeg
 if [ ! -e /var/www$rpicamdir/FIFO ]; then
    sudo mknod /var/www$rpicamdir/FIFO p
 fi
@@ -422,31 +444,31 @@ fi
 if [ ! -e /dev/shm/mjpeg/status_mjpeg.txt ]; then
    echo -n 'halted' > /dev/shm/mjpeg/status_mjpeg.txt
 fi
-sudo chown www-data:www-data /dev/shm/mjpeg/status_mjpeg.txt
+# sudo chown www-data:www-data /dev/shm/mjpeg/status_mjpeg.txt
 sudo ln -sf /dev/shm/mjpeg/status_mjpeg.txt /var/www$rpicamdir/status_mjpeg.txt
 
 sudo chown -R www-data:www-data /var/www$rpicamdir
 sudo cp etc/sudoers.d/RPI_Cam_Web_Interface /etc/sudoers.d/
 sudo chmod 440 /etc/sudoers.d/RPI_Cam_Web_Interface
 
-sudo cp -r bin/raspimjpeg /opt/vc/bin/
-sudo chmod 755 /opt/vc/bin/raspimjpeg
-if [ ! -e /usr/bin/raspimjpeg ]; then
-   sudo ln -s /opt/vc/bin/raspimjpeg /usr/bin/raspimjpeg
+sudo cp -r bin/rpicam-mjpeg /opt/vc/bin/
+sudo chmod 755 /opt/vc/bin/rpicam-mjpeg
+if [ ! -e /usr/bin/rpicam-mjpeg ]; then
+   sudo ln -s /opt/vc/bin/rpicam-mjpeg /usr/bin/rpicam-mjpeg
 fi
 
-sed -e "s/www/www$rpicamdirEsc/" etc/raspimjpeg/raspimjpeg.1 > etc/raspimjpeg/raspimjpeg
+sed -e "s/www/www$rpicamdirEsc/" etc/rpicam-mjpeg/rpicam-mjpeg.1 > etc/rpicam-mjpeg/rpicam-mjpeg
 if [[ `cat /proc/cmdline |awk -v RS=' ' -F= '/boardrev/ { print $2 }'` == "0x11" ]]; then
-   sed -i 's/^camera_num 0/camera_num 1/g' etc/raspimjpeg/raspimjpeg
+   sed -i 's/^camera_num 0/camera_num 1/g' etc/rpicam-mjpeg/rpicam-mjpeg
 fi
-if [ -e /etc/raspimjpeg ]; then
-   $color_green; echo "Your custom raspimjpg backed up at /etc/raspimjpeg.bak"; $color_reset
-   sudo cp -r /etc/raspimjpeg /etc/raspimjpeg.bak
+if [ -e /etc/rpicam-mjpeg ]; then
+   $color_green; echo "Your custom rpicam-mjpeg backed up at /etc/rpicam-mjpeg.bak"; $color_reset
+   sudo cp -r /etc/rpicam-mjpeg /etc/rpicam-mjpeg.bak
 fi
-sudo cp -r etc/raspimjpeg/raspimjpeg /etc/
-sudo chmod 644 /etc/raspimjpeg
-if [ ! -e /var/www$rpicamdir/raspimjpeg ]; then
-   sudo ln -s /etc/raspimjpeg /var/www$rpicamdir/raspimjpeg
+sudo cp -r etc/rpicam-mjpeg/rpicam-mjpeg /etc/
+sudo chmod 644 /etc/rpicam-mjpeg
+if [ ! -e /var/www$rpicamdir/rpicam-mjpeg ]; then
+   sudo ln -s /etc/rpicam-mjpeg /var/www$rpicamdir/rpicam-mjpeg
 fi
 
 sudo usermod -a -G video www-data
