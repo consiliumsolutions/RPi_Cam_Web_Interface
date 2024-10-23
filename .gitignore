@@ -13,3 +13,4 @@ etc/nginx/sites-available/default
 
 # settings
 etc/raspimjpeg/raspimjpeg
+etc/rpicam-mjpeg/rpicam-mjpeg
