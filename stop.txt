@@ -7,7 +7,7 @@
 ++ webport=80
 ++ user=
 ++ webpasswd=
-++ autostart=yes
+++ autostart=no
 ++ jpglink=no
 ++ phpversion=8.2
 ++ gpacinstall=no
