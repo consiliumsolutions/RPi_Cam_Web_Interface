@@ -398,15 +398,15 @@ if [ "$gpacinstall" == "yes" ]; then
 fi
 
 if [ "$webserver" == "apache" ]; then
-   sudo apt-get install -y apache2 $phpv $phpv-cli libapache2-mod-$phpv motion zip gstreamer1.0-tools
+   sudo apt-get install -y apache2 $phpv $phpv-cli libapache2-mod-$phpv motion zip gstreamer1.0-tools dcraw netpbm libjpeg-turbo-progs
    if [ $? -ne 0 ]; then exit; fi
    fn_apache
 elif [ "$webserver" == "nginx" ]; then
-   sudo apt-get install -y nginx $phpv-fpm $phpv-cli $phpv-common php-apcu apache2-utils motion zip gstreamer1.0-tools
+   sudo apt-get install -y nginx $phpv-fpm $phpv-cli $phpv-common php-apcu apache2-utils motion zip gstreamer1.0-tools dcraw netpbm libjpeg-turbo-progs
    if [ $? -ne 0 ]; then exit; fi
    fn_nginx
 elif [ "$webserver" == "lighttpd" ]; then
-   sudo apt-get install -y  lighttpd $phpv-cli $phpv-common $phpv-cgi $phpv motion zip gstreamer1.0-tools
+   sudo apt-get install -y  lighttpd $phpv-cli $phpv-common $phpv-cgi $phpv motion zip gstreamer1.0-tools dcraw netpbm libjpeg-turbo-progs
    if [ $? -ne 0 ]; then exit; fi
    fn_lighttpd
 fi
@@ -471,7 +471,7 @@ if [ -e /etc/rpicam-mjpeg ]; then
    sudo cp -r /etc/rpicam-mjpeg /etc/rpicam-mjpeg.bak
 fi
 sudo cp -r etc/rpicam-mjpeg/rpicam-mjpeg /etc/
-sudo chmod 644 /etc/rpicam-mjpeg
+sudo chmod 666 /etc/rpicam-mjpeg
 if [ ! -e /var/www$rpicamdir/rpicam-mjpeg ]; then
    sudo ln -s /etc/rpicam-mjpeg /var/www$rpicamdir/rpicam-mjpeg
 fi
