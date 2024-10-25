@@ -15,4 +15,4 @@ This version has updates for php7.3 / Buster. May need further changes for nginx
 
 **NOTE: This version of RPi_Cam_Web_Interface includes a precompile rpicam-mjpeg binary to be used with the web interface. This is meant to replace the now-outdated RaspiMJPEG that was previously included. Users have reported issues with using the precompiled binary, and so you may need to rebuild rpicam-apps from source.**
 
-If you need to build rpicam-apps, follow the instruction in README_rpicam-apps.md. This repository contains the source code of rpicam-apps, including the code needed to compile rpicam-mjpeg.
+If you need to build rpicam-apps, follow the instructions in [README_rpicam-apps.md](README_rpicam-apps.md). This repository contains the source code of the rpicam-mjpeg fork of rpicam-apps.
