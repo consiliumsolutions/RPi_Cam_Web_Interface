@@ -11,8 +11,7 @@ Since the Raspberry Pi 4, MMAL is no longer supported, and has been replaced wit
 1.   Clone the repository and enter the `rpicam-apps` directory.
 
      ```sh
-     git clone https://github.com/consiliumsolutions/p05c-rpi-gpu
-     cd p05c-rpi-gpu/rpicam-apps
+     cd RPi_Cam_Web_Interface/rpicam-apps
      ```
 
 2.   Run the following command to install all required dependencies.
